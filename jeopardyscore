@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jeopardy Score Tracker</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+    .scoreboard {
+      font-size: 24px;
+      margin: 20px;
+    }
+    .board {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 10px;
+      max-width: 600px;
+      margin: 20px auto;
+    }
+    .cell {
+      padding: 20px;
+      background-color: #007BFF;
+      color: white;
+      font-weight: bold;
+      text-align: center;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .cell.used {
+      background-color: grey;
+      cursor: not-allowed;
+    }
+    .buttons {
+      margin-top: 20px;
+    }
+    .hidden {
+      display: none;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 5px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    #final-jeopardy-section {
+      margin-top: 30px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Jeopardy Score Tracker</h1>
+  <div class="scoreboard">Score: <span id="score">0</span></div>
+  <div class="board" id="board">
+    <!-- Jeopardy board cells will be generated here -->
+  </div>
+  <div class="buttons hidden" id="buttons">
+    <button id="correct">Correct</button>
+    <button id="incorrect">Incorrect</button>
+  </div>
+  <button id="reset">Reset</button>
+  <button id="double-jeopardy">Double Jeopardy</button>
+  <button id="final-jeopardy">Final Jeopardy</button>
+
+  <div id="final-jeopardy-section" class="hidden">
+    <h2>Final Jeopardy</h2>
+    <p>Enter your wager:</p>
+    <input type="number" id="wager" min="0" step="1">
+    <button id="submit-wager">Submit Wager</button>
+    <div id="final-buttons" class="hidden">
+      <button id="final-correct">Correct</button>
+      <button id="final-incorrect">Incorrect</button>
+    </div>
+  </div>
+
+  <script>
+    const board = document.getElementById("board");
+    const buttons = document.getElementById("buttons");
+    const scoreDisplay = document.getElementById("score");
+    const resetButton = document.getElementById("reset");
+    const doubleJeopardyButton = document.getElementById("double-jeopardy");
+    const finalJeopardyButton = document.getElementById("final-jeopardy");
+    const finalJeopardySection = document.getElementById("final-jeopardy-section");
+    const wagerInput = document.getElementById("wager");
+    const submitWagerButton = document.getElementById("submit-wager");
+    const finalButtons = document.getElementById("final-buttons");
+    const finalCorrectButton = document.getElementById("final-correct");
+    const finalIncorrectButton = document.getElementById("final-incorrect");
+    let selectedValue = 0;
+    let score = 0;
+    let wager = 0;
+
+    // Initial point values for Single Jeopardy and Double Jeopardy
+    const singleJeopardyValues = [200, 400, 600, 800, 1000];
+    const doubleJeopardyValues = [400, 800, 1200, 1600, 2000];
+    let currentBoardValues = singleJeopardyValues;
+
+    // Generate the board
+    function generateBoard(values) {
+      board.innerHTML = ""; // Clear the board
+      for (let i = 0; i < 6; i++) { // 6 categories
+        for (let j = 0; j < 5; j++) { // 5 questions per category
+          const cell = document.createElement("div");
+          cell.className = "cell";
+          cell.textContent = values[j];
+          cell.dataset.value = values[j];
+          cell.addEventListener("click", () => selectCell(cell));
+          board.appendChild(cell);
+        }
+      }
+    }
+
+    // Select a cell
+    function selectCell(cell) {
+      if (cell.classList.contains("used")) return;
+      selectedValue = parseInt(cell.dataset.value, 10);
+      cell.classList.add("used");
+      buttons.classList.remove("hidden");
+    }
+
+    // Handle correct/incorrect button clicks
+    document.getElementById("correct").addEventListener("click", () => {
+      score += selectedValue;
+      updateScore();
+    });
+
+    document.getElementById("incorrect").addEventListener("click", () => {
+      score -= selectedValue;
+      updateScore();
+    });
+
+    function updateScore() {
+      scoreDisplay.textContent = score;
+      buttons.classList.add("hidden");
+    }
+
+    // Reset the game
+    resetButton.addEventListener("click", () => {
+      score = 0;
+      scoreDisplay.textContent = score;
+      selectedValue = 0;
+      buttons.classList.add("hidden");
+      generateBoard(currentBoardValues); // Reset board to current state (Single/Double)
+    });
+
+    // Switch to Double Jeopardy
+    doubleJeopardyButton.addEventListener("click", () => {
+      currentBoardValues = doubleJeopardyValues;
+      generateBoard(doubleJeopardyValues); // Generate Double Jeopardy board
+    });
+
+    // Final Jeopardy feature
+    finalJeopardyButton.addEventListener("click", () => {
+      finalJeopardySection.classList.remove("hidden");
+    });
+
+    // Submit wager for Final Jeopardy
+    submitWagerButton.addEventListener("click", () => {
+      wager = parseInt(wagerInput.value, 10);
+      if (wager > score || wager < 0 || isNaN(wager)) {
+        alert("Invalid wager. Please enter a valid amount.");
+      } else {
+        finalButtons.classList.remove("hidden");
+      }
+    });
+
+    // Final Jeopardy correct answer
+    finalCorrectButton.addEventListener("click", () => {
+      score += wager;
+      updateFinalScore();
+    });
+
+    // Final Jeopardy incorrect answer
+    finalIncorrectButton.addEventListener("click", () => {
+      score -= wager;
+      updateFinalScore();
+    });
+
+    function updateFinalScore() {
+      scoreDisplay.textContent = score;
+      finalJeopardySection.classList.add("hidden");
+      finalButtons.classList.add("hidden");
+    }
+
+    // Initial board generation
+    generateBoard(singleJeopardyValues);
+  </script>
+</body>
+</html>
